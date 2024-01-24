@@ -32,8 +32,6 @@ for i in "${vmnames[@]:start:end}"; do
         rbd_ids=($(rbd ls -p vms | grep "$j"_disk))
 
         for ID in "${rbd_ids[@]}"; do
-            echo $ID $i
-
             # Check if the parent snapshot exists
             if [[ -z $(rbd snap ls vms/$ID) ]]; then
                echo "INFO : found previous snapshots for this rbd volume, doing diff"
