@@ -34,15 +34,18 @@ for i in "${vmnames[@]:start:end}"; do
         for ID in "${rbd_ids[@]}"; do
             # Check if the parent snapshot exists
             if [[ -z $(rbd snap ls vms/$ID) ]]; then
-               echo "INFO : found previous snapshots for this rbd volume, doing diff"
+              # If there are no existing snapshots for the RBD volume
+              echo "INFO : no snapshots found for this rbd image"
+            else
+                # Fetch the original snapshot name
+                parent_snap=$(rbd snap ls vms/$ID | awk 'NR>=2 {print $2}' | head -n 1)
+                echo "INFO : found previous snapshots for this rbd image, doing diff"
                 # Create a new snapshot with the current date
                 rbd snap create vms/$ID@$date
                 # Export Incremental data since the parent snapshot to end snapshot
                 rbd export-diff --rbd-concurrent-management-ops 120 --from-snap $parent_snap vms/$ID@$date "$backup_dir/$ID-$date.img"
                 # Remove the snapshot
                 rbd snap rm vms/$ID@$date
-            else
-             echo "INFO : no snapshots found for this rbd volume"
             fi
         done
     done
